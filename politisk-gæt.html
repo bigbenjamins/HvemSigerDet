@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hvem siger det? – Det danske partispil</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0e0f;--surface:#18181b;--card:#1f1f23;--border:#2e2e35;--red:#c8102e;--red-light:#e8213f;--cream:#f4f0e8;--muted:#8a8a9a;--correct:#22c55e;--wrong:#ef4444;--gold:#f0a500;--radius:14px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.top-bar{background:var(--red);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;box-shadow:0 2px 20px rgba(0,0,0,.6)}
+.logo{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:#fff;letter-spacing:-.5px}
+.logo em{font-style:italic}
+.score-pill{margin-left:auto;background:rgba(255,255,255,.15);border-radius:99px;padding:5px 16px;font-size:.85rem;font-weight:600;color:#fff;display:flex;gap:12px;align-items:center}
+.screen{display:none;flex:1;flex-direction:column;animation:pop .3s ease}
+.screen.active{display:flex}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* WELCOME */
+#screen-welcome{align-items:center;justify-content:center;padding:48px 20px;background:radial-gradient(ellipse at 60% 0%,#2a0510 0%,var(--bg) 60%);text-align:center}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:3px;color:var(--red-light);font-weight:500;margin-bottom:14px}
+.big-title{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,9vw,5.5rem);font-weight:900;line-height:.95;margin-bottom:10px}
+.big-title em{font-style:italic;color:var(--red-light)}
+.sub{font-size:1rem;color:var(--muted);max-width:420px;line-height:1.65;font-weight:300;margin:0 auto 40px}
+.sub strong{color:var(--cream);font-weight:500}
+.sk-section{width:100%;max-width:520px}
+.sk-section label,.mode-label{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-align:left}
+.sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;margin-bottom:28px}
+.sk-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--cream);padding:10px 14px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .18s;text-align:left}
+.sk-btn:hover{border-color:var(--red);background:#26161a}
+.sk-btn.sel{border-color:var(--red);background:#2a0b14;color:#fff}
+.sk-btn.all{grid-column:1/-1;text-align:center;font-size:.9rem;font-weight:600;padding:13px}
+.mode-wrap{width:100%;max-width:520px;margin-bottom:20px}
+.mode-btn{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--cream);cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all .18s}
+.mode-btn:hover{border-color:#555;background:#28282e}
+.mode-btn.active{border-color:var(--gold);background:#1e1500}
+.mode-icon{font-size:1.3rem;flex-shrink:0}
+.mode-txt small{display:block;color:var(--muted);font-size:.75rem;font-weight:300;margin-top:2px}
+.mode-check{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;transition:all .18s}
+.mode-btn.active .mode-check{border-color:var(--gold);background:var(--gold);color:#000}
+.start-btn{width:100%;max-width:520px;background:var(--red);color:#fff;border:none;border-radius:12px;padding:16px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .18s,transform .1s;margin-top:8px}
+.start-btn:hover{background:var(--red-light);transform:translateY(-1px)}
+
+/* GAME */
+#screen-game{padding:28px 20px;align-items:center;max-width:700px;margin:0 auto;width:100%}
+.prog-row{width:100%;display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.prog-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--red);border-radius:2px;transition:width .4s ease}
+.prog-txt{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.cand-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:28px 28px 24px;width:100%;margin-bottom:24px}
+.card-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-bottom:8px}
+.cand-sk{font-size:1rem;font-weight:600;color:var(--cream);margin-bottom:20px}
+.ms-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px}
+.ms-list{display:flex;flex-direction:column;gap:8px}
+.ms-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.92rem;line-height:1.4;display:flex;align-items:flex-start;gap:10px}
+.ms-item::before{content:'›';color:var(--red);font-size:1.1rem;line-height:1.3;flex-shrink:0}
+.guess-sec{width:100%}
+.guess-lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px}
+.party-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
+.p-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:10px;text-align:left;font-family:'DM Sans',sans-serif;width:100%}
+.p-btn:hover:not(:disabled){border-color:#555;background:#28282e;transform:translateY(-1px)}
+.p-btn:disabled{cursor:default}
+.p-letter{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;color:#fff}
+.p-name{font-size:.83rem;font-weight:500;color:var(--cream);line-height:1.3}
+.p-btn.correct{border-color:var(--correct)!important;background:#052015}
+.p-btn.wrong{border-color:var(--wrong)!important;background:#200505}
+.p-btn.reveal{border-color:var(--correct)!important;background:#052015}
+.result-banner{display:none;width:100%;border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:.92rem;font-weight:500;line-height:1.5;align-items:flex-start;gap:12px}
+.result-banner.ok{background:#052015;border:1.5px solid var(--correct);color:#5edc8a;display:flex}
+.result-banner.bad{background:#200505;border:1.5px solid var(--wrong);color:#f87171;display:flex}
+.result-banner .ri{font-size:1.2rem;flex-shrink:0}
+.result-banner .rm span{display:block;color:var(--muted);font-size:.82rem;font-weight:300;margin-top:3px}
+
+/* NAME GUESS */
+.name-sec{display:none;width:100%;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.name-sec.show{display:block}
+.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
+.n-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .18s;text-align:left;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;color:var(--cream);width:100%}
+.n-btn:hover:not(:disabled){border-color:#555;background:#28282e}
+.n-btn:disabled{cursor:default}
+.n-btn.correct{border-color:var(--correct)!important;background:#052015;color:#5edc8a}
+.n-btn.wrong{border-color:var(--wrong)!important;background:#200505;color:#f87171}
+.n-btn.reveal{border-color:var(--correct)!important;background:#052015;color:#5edc8a}
+.name-result{display:none;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:.88rem;font-weight:500;align-items:center;gap:10px}
+.name-result.ok{background:#052015;border:1.5px solid var(--correct);color:#5edc8a;display:flex}
+.name-result.bad{background:#200505;border:1.5px solid var(--wrong);color:#f87171;display:flex}
+.bonus-tag{background:#1e1500;border:1px solid var(--gold);color:var(--gold);border-radius:99px;padding:2px 9px;font-size:.7rem;font-weight:600;margin-left:6px}
+
+.next-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;margin-top:18px;display:none;transition:background .18s}
+.next-btn:hover{background:var(--red-light)}
+.next-btn.show{display:block}
+
+/* RESULT */
+#screen-result{align-items:center;justify-content:center;padding:48px 20px;text-align:center;background:radial-gradient(ellipse at 50% 0%,#071a07 0%,var(--bg) 60%)}
+.res-emoji{font-size:4rem;margin-bottom:12px}
+.res-title{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;margin-bottom:8px}
+.res-big{font-family:'Playfair Display',serif;font-size:5rem;font-weight:900;color:var(--correct);line-height:1;margin-bottom:8px}
+.res-big span{font-size:2rem;color:var(--muted);font-weight:300}
+.res-comment{font-size:1rem;color:var(--muted);max-width:360px;line-height:1.6;margin-bottom:36px}
+.again-btn{background:var(--red);color:#fff;border:none;border-radius:12px;padding:16px 40px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background .18s}
+.again-btn:hover{background:var(--red-light)}
+.bd{width:100%;max-width:420px;margin-top:28px}
+.bd h3{font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px}
+.bd-list{display:flex;flex-direction:column;gap:6px}
+.bd-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.bd-name{font-size:.85rem;font-weight:500;color:var(--cream)}
+.bd-parti{font-size:.75rem;color:var(--muted);margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span style="font-size:1.4rem">🇩🇰</span>
+  <div class="logo">Hvem <em>siger</em> det?</div>
+  <div class="score-pill" id="pill" style="display:none">
+    <span id="sc">0</span> rigtige <span style="opacity:.4">|</span> <span id="sw">0</span> forkerte
+  </div>
+</div>
+
+<!-- WELCOME -->
+<div class="screen active" id="screen-welcome">
+  <p class="eyebrow">Det danske partispil</p>
+  <h1 class="big-title">Hvem<br><em>siger</em><br>det?</h1>
+  <p class="sub">Se en kandidats mærkesager og storkreds — gæt hvilket parti de er fra. <strong>Kan du kende politikerne på deres holdninger?</strong></p>
+
+  <div class="sk-section">
+    <label>Vælg storkreds</label>
+    <div class="sk-grid" id="sk-grid"></div>
+  </div>
+
+  <div class="mode-wrap">
+    <p class="mode-label">Sværhedsgrad</p>
+    <button class="mode-btn" id="mode-btn" onclick="toggleMode()">
+      <span class="mode-icon">🧠</span>
+      <div class="mode-txt">
+        Gæt også kandidatens navn
+        <small>Efter partiet — hvem er det egentlig?</small>
+      </div>
+      <div class="mode-check" id="mode-check"></div>
+    </button>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">Start spillet →</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screen-game">
+  <div class="prog-row">
+    <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+    <span class="prog-txt" id="prog-txt">0 / 10</span>
+  </div>
+  <div class="cand-card">
+    <p class="card-lbl">Kandidat</p>
+    <p class="cand-sk" id="csk">—</p>
+    <p class="ms-lbl">Mærkesager</p>
+    <div class="ms-list" id="cms"></div>
+  </div>
+  <div class="guess-sec">
+    <p class="guess-lbl">Hvilket parti er kandidaten fra?</p>
+    <div class="result-banner" id="banner">
+      <span class="ri" id="bicon"></span>
+      <div class="rm" id="bmsg"></div>
+    </div>
+    <div class="party-grid" id="pgrid"></div>
+
+    <!-- NAME GUESS (hidden until party is answered) -->
+    <div class="name-sec" id="name-sec">
+      <p class="guess-lbl">Hvem er kandidaten? <span class="bonus-tag">BONUS</span></p>
+      <div class="name-result" id="name-result">
+        <span id="nricon"></span>
+        <div id="nrmsg"></div>
+      </div>
+      <div class="name-grid" id="ngrid"></div>
+    </div>
+
+    <button class="next-btn" id="nxt" onclick="nextQ()">Næste kandidat →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="res-emoji" id="remoji">🏆</div>
+  <h2 class="res-title">Spillet er slut!</h2>
+  <div class="res-big" id="rbig">—</div>
+  <p class="res-comment" id="rcomment">—</p>
+  <button class="again-btn" onclick="resetGame()">Spil igen</button>
+  <div class="bd">
+    <h3>Dine svar</h3>
+    <div class="bd-list" id="bdlist"></div>
+  </div>
+</div>
+
+<script>
+const CANDIDATES=[
+  {navn:"Alex Vanopslagh",parti:"Liberal Alliance",storkreds:"Østjylland",ms:["Styrkning af dansk økonomi","Mindre bureaukrati i det offentlige","Mere frihed under ansvar og lavere skatter"]},
+  {navn:"Franciska Rosenkilde",parti:"Alternativet",storkreds:"København",ms:["Klima og Bæredygtighed","Landbrug og miljø","Grøn Omstilling"]},
+  {navn:"Lars Boje Mathiesen",parti:"Borgernes Parti",storkreds:"Østjylland",ms:["Magten tilbage til borgerne","Stram udlændingepolitikken","Kernevelfærd"]},
+  {navn:"Inger Støjberg",parti:"Danmarksdemokraterne",storkreds:"Nordjylland",ms:["Danmark i balance","Kamp mod storbyer","Tradition og bevarelse"]},
+  {navn:"Morten Messerschmidt",parti:"Dansk Folkeparti",storkreds:"Sjælland",ms:["Stram udlændingepolitikken","Mod afgifter og stigende pensionsalder","EU-Skepsis"]},
+  {navn:"Mona Juul",parti:"Det Konservative Folkeparti",storkreds:"Østjylland",ms:["Tradition, bevarelse og værdipolitik","Lavere skatter","Fokus på erhvervspolitik"]},
+  {navn:"Pelle Dragsted",parti:"Enhedslisten",storkreds:"København",ms:["Økonomisk retfærdighed","Anti-finanssektor","Bedre vælferdsstat"]},
+  {navn:"Lars Løkke Rasmussen",parti:"Moderaterne",storkreds:"Sjælland",ms:["Midterregeringsdannelse","Styrke virksomheder og innovation","Tænke rationelt og bruge fornuft"]},
+  {navn:"Martin Lidegaard",parti:"Det Radikale Venstre",storkreds:"Nordsjælland",ms:["Grøn Omstilling","Bedre uddannelse","Bedre internationalt samarbejde, f.eks. EU"]},
+  {navn:"Mette Frederiksen",parti:"Socialdemokratiet",storkreds:"Nordjylland",ms:["Tidlig Pension","Stram udlændingepolitikken","Stærkere velfærd og bedre arbejdsmarked"]},
+  {navn:"Pia Olsen Dyhr",parti:"SF",storkreds:"Sjælland",ms:["Bedre velfærd og økonomisk ligestilling","Grøn omstilling","Højere SU"]},
+  {navn:"Troels Lund Poulsen",parti:"Venstre",storkreds:"Østjylland",ms:["Økonomisk tryghed – at gøre Danmark rigere","Forsvar og sikkerhedspolitik","Velfærdssamfund baseret på frihed"]},
+  {navn:"Mattias Tesfaye",parti:"Socialdemokratiet",storkreds:"Københavns Omegn",ms:["Hård kurs mod parallelsamfund","Kontanthjælpsloft","Børn, unge og uddannelse"]},
+  {navn:"Kaare Dybvad Bek",parti:"Socialdemokratiet",storkreds:"Sjælland",ms:["Stop for ghettoer","Udlændingepolitik","Regulering af Airbnb"]},
+  {navn:"Magnus Heunicke",parti:"Socialdemokratiet",storkreds:"Sjælland",ms:["Sundhedspolitik","Afvisning af brugerbetaling","10-årsplan for sygehuse"]},
+  {navn:"Morten Bødskov",parti:"Socialdemokratiet",storkreds:"Københavns Omegn",ms:["Udvisning af kriminelle udlændinge","Styrkelse af NATO-forpligtelse","Digital sikkerhed"]},
+  {navn:"Nicolai Wammen",parti:"Socialdemokratiet",storkreds:"Østjylland",ms:["Ansvarlig finanspolitik","EU-engagement","Grøn investeringsfond"]},
+  {navn:"Peter Hummelgaard",parti:"Socialdemokratiet",storkreds:"København",ms:["Organiseret kriminalitet","Retspolitik","Stærkt politi"]},
+  {navn:"Astrid Carøe",parti:"SF",storkreds:"Sjælland",ms:["Forbud mod pesticider i landbruget","Bindende naturmål på 30%","Vegansk kostpolitik i det offentlige"]},
+  {navn:"Signe Munk",parti:"SF",storkreds:"Vestjylland",ms:["Landbrugsstøtte fra kød til planter","CO₂-afgift på landbrug","Lavbundsjorde ud af drift"]},
+  {navn:"Jacob Mark",parti:"SF",storkreds:"Nordsjælland",ms:["Højere SU","Afskaf karaktersystemet","Maksimal klassestørrelse på 22"]},
+  {navn:"Carl Valentin",parti:"SF",storkreds:"København",ms:["Bilfri indre by","Forbud mod nye motorveje","Massiv cykelpulje"]},
+  {navn:"Karina Lorentzen",parti:"SF",storkreds:"Sydjylland",ms:["Fælles forældreorlov 50/50","Udvidet barsel til begge forældre","Statsfinansieret reproduktionsbehandling"]},
+  {navn:"Anne Valentina Berthelsen",parti:"SF",storkreds:"Østjylland",ms:["Klimaretfærdighed for globale syd","Stop for olieinvesteringer","Grøn u-landspolitik"]},
+  {navn:"Sophie Løhde",parti:"Venstre",storkreds:"Nordsjælland",ms:["Privathospitaler som alternativ","Effektivisering af kommunerne","Frit sygehusvalg"]},
+  {navn:"Marie Bjerre",parti:"Venstre",storkreds:"Nordjylland",ms:["Fuld EU-integration","Frihandelsaftaler","Digital single market"]},
+  {navn:"Jakob Ellemann-Jensen",parti:"Venstre",storkreds:"Sjælland",ms:["Ukraine-støtte og vestligt forsvar","Afskaf forsvarsforbehold","NATO-solidaritet"]},
+  {navn:"Lars Christian Lilleholt",parti:"Venstre",storkreds:"Sydjylland",ms:["Markedsbaseret energiomstilling","Fjernelse af afgifter på erhvervsenergi","Vindmøller til havs frem for på land"]},
+  {navn:"Anni Matthiesen",parti:"Venstre",storkreds:"Fyn",ms:["Styrket kommunal ældreomsorg","Flere varme hænder","Frivillighed som supplement til det offentlige"]},
+  {navn:"Morten Dahlin",parti:"Venstre",storkreds:"Sjælland",ms:["Retssikkerhed og borgernes rettigheder","Afbureaukratisering","Kommunalt selvstyre"]},
+  {navn:"Ole Birk Olesen",parti:"Liberal Alliance",storkreds:"København",ms:["Markedsliberalisme i boligsektoren","Afskaf lejeloven for nybyggeri","Privatiser DSB"]},
+  {navn:"Sólbjørg Jakobsen",parti:"Liberal Alliance",storkreds:"Nordjylland",ms:["Fjern iværksætterskat","Afskaf revisionspligten for SMV'er","Stop for overimplementering af EU-regler"]},
+  {navn:"Joachim B. Olsen",parti:"Liberal Alliance",storkreds:"Sjælland",ms:["Konkurrence i velfærdssektoren","Private gymnasier ligestillet med offentlige","Afskaf public service-skat"]},
+  {navn:"Lars-Christian Brask",parti:"Liberal Alliance",storkreds:"Sjælland",ms:["Kernekraft som klimafix","Stop for planøkonomisk energistyring","Fjern grønne afgifter på erhverv"]},
+  {navn:"Pernille Vermund",parti:"Liberal Alliance",storkreds:"Sjælland",ms:["Nul asylsøgere til Danmark","Totalt stop for familiesammenføring","Strengere statsborgerskabskrav"]},
+  {navn:"Steffen W. Frølund",parti:"Liberal Alliance",storkreds:"Nordsjælland",ms:["Frihed til at vælge egen læge og sygehus","Frit valg i skole og daginstitution","Afskaf offentlige monopoler"]},
+  {navn:"Mikkel Bjørn",parti:"Dansk Folkeparti",storkreds:"Københavns Omegn",ms:["Stop for islamisk indvandring","Forbud mod halalslagtning","Danmark for danskere"]},
+  {navn:"Peter Kofod",parti:"Dansk Folkeparti",storkreds:"Sydjylland",ms:["Udvisning af kriminelle udlændinge","Lukket grænse for asylsøgere","Stop for EU's migrationspagt"]},
+  {navn:"Mette Thiesen",parti:"Dansk Folkeparti",storkreds:"Nordsjælland",ms:["Traditionelle kønsroller","Modstand mod kønsideologi i folkeskolen","Familieværdier"]},
+  {navn:"Alex Ahrendtsen",parti:"Dansk Folkeparti",storkreds:"Fyn",ms:["Folkeskolens frihed fra reformer og tests","Traditionel klassisk undervisning","Friskoler og efterskoler"]},
+  {navn:"Anders Vistisen",parti:"Dansk Folkeparti",storkreds:"Nordjylland",ms:["EU-skepsis","Dansk suverænitet i Arktis","Stop for yderligere EU-integration"]},
+  {navn:"Nick Zimmermann",parti:"Dansk Folkeparti",storkreds:"Østjylland",ms:["Lov og orden","Hårdere straffe","Ofre prioriteres over gerningsmænd"]},
+  {navn:"Hans Kristian Skibby",parti:"Danmarksdemokraterne",storkreds:"Østjylland",ms:["Motorveje frem for tog","Bilafgifter ned","Dansk skibsfart beskyttes mod EU-kvoter"]},
+  {navn:"Karina Adsbøl",parti:"Danmarksdemokraterne",storkreds:"Sydjylland",ms:["Stram grænseovervågning","Stop for kriminel indvandring","Strenge asylregler"]},
+  {navn:"Marlene Harpsøe",parti:"Danmarksdemokraterne",storkreds:"Nordsjælland",ms:["Stop for dobbelt statsborgerskab","Ingen særrettigheder til religiøse mindretal","Dansk kulturfundament"]},
+  {navn:"Jens Henrik W. Thulesen Dahl",parti:"Danmarksdemokraterne",storkreds:"Fyn",ms:["Landbrugspakke med lavere miljøregulering","Fiskeriet mod EU-kvoter","Provinsen frem for storbyen"]},
+  {navn:"Susie Jessen",parti:"Danmarksdemokraterne",storkreds:"Sjælland",ms:["Folkepension som uantastelig rettighed","Ældreomsorg til dem der har bidraget","Lokal velfærd"]},
+  {navn:"Mads Fuglede",parti:"Danmarksdemokraterne",storkreds:"Vestjylland",ms:["Genåbn lukkede politistationer i provinsen","Kameraovervågning i alle byer","Hårdere straffe"]},
+  {navn:"Marcus Knuth",parti:"Det Konservative Folkeparti",storkreds:"Sjælland",ms:["Aktiesparekonto til alle danskere","Arveafgift afskaffes","Iværksætterkultur ind i folkeskolen"]},
+  {navn:"Mette Abildgaard",parti:"Det Konservative Folkeparti",storkreds:"Nordsjælland",ms:["Retssikkerhed for borgerne over for Skat","Opgør med myndighedernes magtmisbrug","Liberale frihedsrettigheder"]},
+  {navn:"Mai Mercado",parti:"Det Konservative Folkeparti",storkreds:"Fyn",ms:["Børns rettigheder og trivsel","Stærk børnepolitik","Familiepolitik med traditionelle værdier"]},
+  {navn:"Helle Bonnesen",parti:"Det Konservative Folkeparti",storkreds:"København",ms:["Ældreomsorg med værdighed","Seniorboliger","Demenstillæg"]},
+  {navn:"Lise Bertelsen",parti:"Det Konservative Folkeparti",storkreds:"Vestjylland",ms:["Patientrettigheder som juridisk bindende","Privathospitaler fuldt ligestillet","Diagnosefrihed"]},
+  {navn:"Birgitte Bergman",parti:"Det Konservative Folkeparti",storkreds:"Nordsjælland",ms:["Stærkt kommunalt selvstyre","Lokal erhvervspolitik","Borgerinddragelse"]},
+  {navn:"Rosa Lund",parti:"Enhedslisten",storkreds:"København",ms:["Afkriminalisering af alle narkotyper","Sprøjterum i alle større byer","Psykiatri frem for fængsel"]},
+  {navn:"Eva Flyvholm",parti:"Enhedslisten",storkreds:"Sjælland",ms:["6-timers arbejdsdag med fuld løn","Ret til nedsat tid for nedslidte","Stærke faglige rettigheder"]},
+  {navn:"Victoria Velasquez",parti:"Enhedslisten",storkreds:"Fyn",ms:["Mod etnisk profilering ved politikontrol","Afvikl udrejsecentre","Åben grænse for klimaflygtninge"]},
+  {navn:"Lisbeth Torfing",parti:"Enhedslisten",storkreds:"Vestjylland",ms:["Klimalov med bindende sektormål","Stop for kødproduktionens vækst","Naturens rettigheder i grundloven"]},
+  {navn:"Peder Hvelplund",parti:"Enhedslisten",storkreds:"Nordjylland",ms:["Danmark ud af EU's forsvarssamarbejde","Folkeafstemning om NATO-udvidelse","Stop for F-35"]},
+  {navn:"Trine Pertou Mach",parti:"Enhedslisten",storkreds:"Østjylland",ms:["Gratis kollektiv trafik","Afskaf motorvejsbyggeri","Nationalisér DSB"]},
+  {navn:"Zenia Stampe",parti:"Det Radikale Venstre",storkreds:"Sjælland",ms:["Afskaf udrejsecentre","Familiesammenføring uden pointsystem","Opholdstid ned fra 9 år"]},
+  {navn:"Samira Nawa",parti:"Det Radikale Venstre",storkreds:"København",ms:["Mental sundhed i folkeskolen","Lønlighed for pædagoger","ADHD-udredning uden venteliste"]},
+  {navn:"Katrine Robsøe",parti:"Det Radikale Venstre",storkreds:"Østjylland",ms:["Boligmarkedet liberaliseres i byerne","Fjern lejeloven for nybyggeri","Co-living anerkendes juridisk"]},
+  {navn:"Stinus Lindgreen",parti:"Det Radikale Venstre",storkreds:"Københavns Omegn",ms:["Åben og human flygtningepolitik","Humanitære visa","International solidaritet"]},
+  {navn:"Anastasia Milthers",parti:"Det Radikale Venstre",storkreds:"Fyn",ms:["Ungdomspolitik","Unge og mental sundhed","Uddannelsesfrihed"]},
+  {navn:"Magnus Georg Jensen",parti:"Det Radikale Venstre",storkreds:"København",ms:["Klimaretfærdighed","Grøn omstilling med sociale hensyn","EU som klimaredskab"]},
+  {navn:"Christina Egelund",parti:"Moderaterne",storkreds:"Østjylland",ms:["Karakterer fra 4. klasse","Privatskolernes frihed","Forskningsbaseret pædagogik"]},
+  {navn:"Lars Aagaard",parti:"Moderaterne",storkreds:"Fyn",ms:["CO₂-afgift på tværs af sektorer","Teknologisk neutralitet i energipolitik","Markedsbaseret klimaomstilling"]},
+  {navn:"Jakob Engel-Schmidt",parti:"Moderaterne",storkreds:"Københavns Omegn",ms:["Pragmatisk ungdomspolitik","Iværksætteri","Digitalisering af det offentlige"]},
+  {navn:"Caroline Stage",parti:"Moderaterne",storkreds:"Østjylland",ms:["Ventetider i psykiatrien via private aktører","Pakkeforløb som sundhedsret","Digital sundhedsjournal"]},
+  {navn:"Charlotte Bagge",parti:"Moderaterne",storkreds:"Sjælland",ms:["Grøn iværksætteri som vækststrategi","Statsstøtte til deep tech","Klimaeksport frem for klimaafgifter"]},
+  {navn:"Monika Rubin",parti:"Moderaterne",storkreds:"Københavns Omegn",ms:["Integration via arbejdsmarkedet","Imod parallelsamfund","Pragmatisk udlændingepolitik"]},
+  {navn:"Torsten Gejl",parti:"Alternativet",storkreds:"Østjylland",ms:["Algoritmisk transparens i sociale medier","Ret til digital frakobling","Offentlig data som fælleseje"]},
+  {navn:"Elise Sydendal",parti:"Alternativet",storkreds:"Sjælland",ms:["Naturrettigheder i grundloven","Pesticidfri Danmark","Halvér areal til kødproduktion"]},
+  {navn:"Signe Wenneberg",parti:"Alternativet",storkreds:"Københavns Omegn",ms:["Bæredygtig byplanlægning","Kooperativer som virksomhedsform","Grøn omstilling nedefra"]},
+  {navn:"Anna Bjerre",parti:"Alternativet",storkreds:"Nordjylland",ms:["Lokal energiproduktion ejet af borgere","Borgerdeltagelse i demokratiet","Klimaretfærdighed"]},
+  {navn:"Peter Samir",parti:"Alternativet",storkreds:"Københavns Omegn",ms:["Fremme grønne investeringer","Et Danmark uden symbolpolitik","Grøn iværksætteri og større u-bistand"]},
+  {navn:"Emilie Schytte",parti:"Borgernes Parti",storkreds:"Nordsjælland",ms:["Mediernes uafhængighed","Stop for eliters kontrol over narrativet","Ytringsfrihed uden undtagelser"]},
+  {navn:"Nadja Natalie Isaksen",parti:"Borgernes Parti",storkreds:"Sydjylland",ms:["Opgør med politisk korrekthed","Folkelig modstand mod globalisme","Borgernes ret mod centralmagt"]},
+  {navn:"Mathias Fuglsang",parti:"Borgernes Parti",storkreds:"Københavns Omegn",ms:["Kernevelfærd først","Mindre bureaukrati","Borgernær politik"]},
+  {navn:"Michael Bang Pedersen",parti:"Borgernes Parti",storkreds:"Østjylland",ms:["Mindre bureaukrati, mere frihed","Danmark først","Skatten skal bruges på Danmark og danskerne"]},
+  {navn:"Helge Koch Frandsen",parti:"Borgernes Parti",storkreds:"Vestjylland",ms:["Større tillid til politiet","Hårdere straffe for kriminalitet","Fair vilkår og mindre bureaukrati"]}
+];
+
+const PARTIES=[
+  {navn:"Socialdemokratiet",short:"A",color:"#C8102E"},
+  {navn:"Det Radikale Venstre",short:"B",color:"#9B1C6E"},
+  {navn:"Det Konservative Folkeparti",short:"C",color:"#00853F"},
+  {navn:"SF",short:"F",color:"#E8211D"},
+  {navn:"Liberal Alliance",short:"I",color:"#0066CC"},
+  {navn:"Danmarksdemokraterne",short:"Æ",color:"#004B87"},
+  {navn:"Alternativet",short:"Å",color:"#2ECC71"},
+  {navn:"Venstre",short:"V",color:"#003479"},
+  {navn:"Enhedslisten",short:"Ø",color:"#9B2335"},
+  {navn:"Dansk Folkeparti",short:"O",color:"#B8860B"},
+  {navn:"Moderaterne",short:"M",color:"#6B2D8B"},
+  {navn:"Borgernes Parti",short:"BP",color:"#1A3A5C"}
+];
+
+const STORKREDSE=["Alle","Fyn","Københavns Omegn","København","Nordjylland","Nordsjælland","Sjælland","Sydjylland","Vestjylland","Østjylland"];
+const ROUNDS=10;
+
+let selSK="Alle", nameMode=false;
+let queue=[],cur=0,rights=0,wrongs=0,bonusRights=0,answered=false,nameAnswered=false,hist=[];
+
+// Storkreds buttons
+const skg=document.getElementById("sk-grid");
+STORKREDSE.forEach(sk=>{
+  const b=document.createElement("button");
+  b.className="sk-btn"+(sk==="Alle"?" all sel":"");
+  b.textContent=sk==="Alle"?"🇩🇰 Alle storkredse":sk;
+  b.onclick=()=>{document.querySelectorAll(".sk-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");selSK=sk;};
+  skg.appendChild(b);
+});
+
+function toggleMode(){
+  nameMode=!nameMode;
+  document.getElementById("mode-btn").classList.toggle("active",nameMode);
+  document.getElementById("mode-check").textContent=nameMode?"✓":"";
+}
+
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+
+function startGame(){
+  let pool=selSK==="Alle"?CANDIDATES:CANDIDATES.filter(c=>c.storkreds===selSK);
+  if(pool.length<3){alert("Ikke nok kandidater i den valgte storkreds.");return}
+  queue=shuffle(pool).slice(0,Math.min(ROUNDS,pool.length));
+  cur=0;rights=0;wrongs=0;bonusRights=0;hist=[];answered=false;nameAnswered=false;
+  document.getElementById("pill").style.display="flex";
+  document.getElementById("sc").textContent="0";
+  document.getElementById("sw").textContent="0";
+  showScreen("screen-game");
+  renderQ();
+}
+
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+
+function renderQ(){
+  const c=queue[cur];answered=false;nameAnswered=false;
+  document.getElementById("csk").textContent="📍 "+c.storkreds+" Storkreds";
+  document.getElementById("cms").innerHTML=c.ms.map(m=>`<div class="ms-item">${m}</div>`).join("");
+  const pct=(cur/queue.length)*100;
+  document.getElementById("prog").style.width=pct+"%";
+  document.getElementById("prog-txt").textContent=cur+" / "+queue.length;
+  const ban=document.getElementById("banner");
+  ban.className="result-banner";
+  document.getElementById("nxt").classList.remove("show");
+  document.getElementById("name-sec").classList.remove("show");
+  document.getElementById("name-result").className="name-result";
+  const pg=document.getElementById("pgrid");
+  pg.innerHTML="";
+  PARTIES.forEach(p=>{
+    const b=document.createElement("button");
+    b.className="p-btn";
+    b.innerHTML=`<div class="p-letter" style="background:${p.color}">${p.short}</div><div class="p-name">${p.navn}</div>`;
+    b.onclick=()=>guessParty(p.navn,b);
+    pg.appendChild(b);
+  });
+}
+
+function guessParty(parti,btn){
+  if(answered)return;answered=true;
+  const c=queue[cur];
+  const ok=parti===c.parti;
+  document.querySelectorAll(".p-btn").forEach(b=>b.disabled=true);
+  if(ok){btn.classList.add("correct");rights++;}
+  else{
+    btn.classList.add("wrong");wrongs++;
+    document.querySelectorAll(".p-btn").forEach(b=>{if(b.querySelector(".p-name").textContent===c.parti)b.classList.add("reveal");});
+  }
+  document.getElementById("sc").textContent=rights;
+  document.getElementById("sw").textContent=wrongs;
+  const ban=document.getElementById("banner");
+  ban.className="result-banner "+(ok?"ok":"bad");
+  document.getElementById("bicon").textContent=ok?"✅":"❌";
+  document.getElementById("bmsg").innerHTML=ok
+    ?`<strong>Rigtigt! 🎉</strong><span>${c.parti}</span>`
+    :`<strong>Forkert!</strong><span>Det rigtige svar var: ${c.parti}</span>`;
+
+  if(nameMode){
+    showNameGuess(c);
+  } else {
+    hist.push({navn:c.navn,parti:c.parti,partiOk:ok,nameOk:null});
+    const nxt=document.getElementById("nxt");
+    nxt.classList.add("show");
+    nxt.textContent=cur+1>=queue.length?"Se resultater →":"Næste kandidat →";
+  }
+}
+
+function showNameGuess(c){
+  // Build options: all candidates from correct party, max 4, + decoys from other parties to make 6 total
+  const sameParty=CANDIDATES.filter(x=>x.parti===c.parti&&x.navn!==c.navn);
+  const others=shuffle(CANDIDATES.filter(x=>x.parti!==c.parti));
+  let options=shuffle([c,...sameParty.slice(0,3),...others.slice(0,2)]).slice(0,6);
+  // ensure correct answer is in there
+  if(!options.find(x=>x.navn===c.navn)){options[0]=c;options=shuffle(options);}
+
+  const ng=document.getElementById("ngrid");
+  ng.innerHTML="";
+  options.forEach(opt=>{
+    const b=document.createElement("button");
+    b.className="n-btn";
+    b.textContent=opt.navn;
+    b.onclick=()=>guessName(opt.navn,b,c);
+    ng.appendChild(b);
+  });
+  document.getElementById("name-sec").classList.add("show");
+}
+
+function guessName(navn,btn,c){
+  if(nameAnswered)return;nameAnswered=true;
+  const ok=navn===c.navn;
+  document.querySelectorAll(".n-btn").forEach(b=>b.disabled=true);
+  if(ok){btn.classList.add("correct");bonusRights++;}
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(".n-btn").forEach(b=>{if(b.textContent===c.navn)b.classList.add("reveal");});
+  }
+  const nr=document.getElementById("name-result");
+  nr.className="name-result "+(ok?"ok":"bad");
+  document.getElementById("nricon").textContent=ok?"⭐":"❌";
+  document.getElementById("nrmsg").innerHTML=ok
+    ?`<strong>Ja! Det er ${c.navn}</strong>`
+    :`<strong>Nej — det var ${c.navn}</strong>`;
+  hist.push({navn:c.navn,parti:c.parti,partiOk:answered,nameOk:ok});
+  const nxt=document.getElementById("nxt");
+  nxt.classList.add("show");
+  nxt.textContent=cur+1>=queue.length?"Se resultater →":"Næste kandidat →";
+}
+
+function nextQ(){cur++;if(cur>=queue.length)showResults();else renderQ();}
+
+function showResults(){
+  const tot=queue.length,pct=Math.round(rights/tot*100);
+  let emoji="💀",comment="Bedre held næste gang!";
+  if(pct>=90){emoji="🏆";comment="Imponerende! Du er en ægte politisk nørd.";}
+  else if(pct>=70){emoji="🎉";comment="Rigtig flot! Du kender dine partier.";}
+  else if(pct>=50){emoji="👍";comment="Ikke dårligt – der er dog plads til forbedring.";}
+  else if(pct>=30){emoji="🤔";comment="Hmm, måske skulle du læse lidt mere Altinget?";}
+  document.getElementById("remoji").textContent=emoji;
+  const bonusTxt=nameMode?` <span style="font-size:1.5rem;color:var(--gold)">+${bonusRights}⭐</span>`:"";
+  document.getElementById("rbig").innerHTML=rights+`<span> / ${tot}</span>`+bonusTxt;
+  document.getElementById("rcomment").textContent=comment;
+  document.getElementById("bdlist").innerHTML=hist.map(h=>`
+    <div class="bd-item">
+      <div>
+        <div class="bd-name">${h.navn}</div>
+        <div class="bd-parti">${h.parti}</div>
+      </div>
+      <span>${h.partiOk?"✅":"❌"}${h.nameOk===true?" ⭐":h.nameOk===false?" ❌":""}</span>
+    </div>`).join("");
+  showScreen("screen-result");
+}
+
+function resetGame(){document.getElementById("pill").style.display="none";showScreen("screen-welcome");}
+</script>
+</body>
+</html>
